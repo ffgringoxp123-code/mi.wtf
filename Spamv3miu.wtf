@@ -5,8 +5,45 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 
+-- LOADING SCREEN
+local pg = Player:WaitForChild("PlayerGui")
+
+local loadingGui = Instance.new("ScreenGui", pg)
+loadingGui.Name = "MIU_LOADING"
+loadingGui.ResetOnSpawn = false
+
+local bg = Instance.new("Frame", loadingGui)
+bg.Size = UDim2.new(1,0,1,0)
+bg.BackgroundColor3 = Color3.fromRGB(20, 10, 20)
+
+local title = Instance.new("TextLabel", bg)
+title.Size = UDim2.new(1,0,0,50)
+title.Position = UDim2.new(0,0,0.3,0)
+title.BackgroundTransparency = 1
+title.Text = "Miu.wtf"
+title.TextColor3 = Color3.fromRGB(255,105,180)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 28
+
+local percent = Instance.new("TextLabel", bg)
+percent.Size = UDim2.new(1,0,0,40)
+percent.Position = UDim2.new(0,0,0.5,0)
+percent.BackgroundTransparency = 1
+percent.Text = "1%"
+percent.TextColor3 = Color3.new(1,1,1)
+percent.Font = Enum.Font.GothamBold
+percent.TextSize = 24
+
+for i = 1, 100 do
+	percent.Text = i .. "%"
+	task.wait(0.015)
+end
+
+loadingGui:Destroy()
+
+-- MAIN SCRIPT
 local revertedRemotes = {}
-local manualSpamActive = false
+local manualSpamActive = true -- auto chạy luôn
 local CREATOR = "Miu.wtf"
 
 local function isValidRemoteArgs(args)
@@ -49,7 +86,6 @@ ReplicatedStorage.ChildAdded:Connect(function(r)
 	if r:IsA("RemoteEvent") then hookRemote(r) end
 end)
 
-local pg = Player:WaitForChild("PlayerGui")
 if pg:FindFirstChild("MIU_SPAM_ONLY") then pg.MIU_SPAM_ONLY:Destroy() end
 
 local sg = Instance.new("ScreenGui", pg)
@@ -68,7 +104,7 @@ Instance.new("UICorner", f).CornerRadius = UDim.new(0, 12)
 local stroke = Instance.new("UIStroke", f)
 stroke.Color = Color3.fromRGB(255, 105, 180)
 
--- NÚT THU NHỎ
+-- MINIMIZE BUTTON
 local minimize = Instance.new("TextButton", f)
 minimize.Size = UDim2.new(0, 30, 0, 30)
 minimize.Position = UDim2.new(1, -35, 0, 5)
@@ -79,12 +115,12 @@ minimize.Font = Enum.Font.GothamBold
 minimize.TextSize = 18
 Instance.new("UICorner", minimize).CornerRadius = UDim.new(1,0)
 
--- NÚT CHÍNH
+-- MAIN BUTTON
 local b = Instance.new("TextButton", f)
 b.Size = UDim2.new(1, -20, 0, 45)
 b.Position = UDim2.new(0, 10, 0, 40)
 b.BackgroundColor3 = Color3.fromRGB(40, 20, 40)
-b.Text = "WAITING..."
+b.Text = "SPAM READY"
 b.TextColor3 = Color3.new(1, 1, 1)
 b.Font = Enum.Font.GothamBold
 b.TextSize = 16
@@ -95,15 +131,15 @@ local s = Instance.new("TextLabel", f)
 s.Size = UDim2.new(1, 0, 0, 25)
 s.Position = UDim2.new(0, 0, 1, -25)
 s.BackgroundTransparency = 1
-s.Text = "HIT BALL ONCE - " .. CREATOR
+s.Text = "LOADING DATA..."
 s.TextColor3 = Color3.fromRGB(255, 105, 180)
 s.Font = Enum.Font.GothamBold
 s.TextSize = 14
 
--- MINI ICON (khi thu nhỏ)
+-- MINI ICON
 local mini = Instance.new("TextButton", sg)
 mini.Size = UDim2.new(0, 50, 0, 50)
-mini.Position = UDim2.new(0.5, -25, 0.3, 0)
+mini.Position = f.Position
 mini.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 mini.Text = "MIU"
 mini.TextColor3 = Color3.new(1,1,1)
@@ -112,34 +148,19 @@ mini.Active = true
 mini.Draggable = true
 Instance.new("UICorner", mini).CornerRadius = UDim.new(1,0)
 
--- TOGGLE THU NHỎ
 minimize.MouseButton1Click:Connect(function()
 	f.Visible = false
 	mini.Visible = true
-	mini.Position = f.Position
 end)
 
 mini.MouseButton1Click:Connect(function()
 	f.Visible = true
 	mini.Visible = false
-	f.Position = mini.Position
-end)
-
--- BUTTON LOGIC
-b.MouseButton1Click:Connect(function()
-	if not next(revertedRemotes) then 
-		b.Text = "HIT BALL!" 
-		return 
-	end
-	
-	manualSpamActive = not manualSpamActive
-	b.Text = manualSpamActive and "SPAMMING" or "READY"
-	b.BackgroundColor3 = manualSpamActive and Color3.fromRGB(255, 105, 180) or Color3.fromRGB(40, 20, 40)
 end)
 
 -- SPAM LOOP
 RunService.Stepped:Connect(function()
-	if manualSpamActive then
+	if manualSpamActive and next(revertedRemotes) then
 		for _ = 1, math.random(6, 9) do 
 			for remote, args in pairs(revertedRemotes) do
 				pcall(function() 
@@ -153,14 +174,11 @@ end)
 -- UI UPDATE
 task.spawn(function()
 	while sg.Parent do
-		if not next(revertedRemotes) then
-			b.Text = "WAITING..."
-			s.Text = "NEED DATA"
-		elseif not manualSpamActive then 
-			b.Text = "READY"
-			s.Text = "STATUS: PRIME"
-		else
+		if next(revertedRemotes) then
 			s.Text = "CPS: " .. math.random(400, 700)
+			b.Text = "SPAMMING"
+		else
+			s.Text = "LOADING DATA..."
 		end
 		task.wait(0.2)
 	end
