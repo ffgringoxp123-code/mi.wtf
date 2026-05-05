@@ -1,0 +1,87 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui", game.CoreGui)
+
+gui.Name = "FakeRobuxUI"
+
+-- MAIN FRAME
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 260, 0, 220)
+frame.Position = UDim2.new(0, 20, 0, 100)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,30)
+frame.Active = true
+frame.Draggable = true
+
+-- TITLE
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,30)
+title.Text = "💰 Fake Robux"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+
+-- BALANCE
+local balance = Instance.new("TextLabel", frame)
+balance.Position = UDim2.new(0,0,0,40)
+balance.Size = UDim2.new(1,0,0,40)
+balance.Text = "0 R$"
+balance.TextScaled = true
+balance.TextColor3 = Color3.fromRGB(0,255,200)
+balance.BackgroundTransparency = 1
+
+-- INPUT
+local box = Instance.new("TextBox", frame)
+box.Position = UDim2.new(0,10,0,90)
+box.Size = UDim2.new(1,-20,0,30)
+box.PlaceholderText = "Nhập Robux..."
+box.Text = ""
+
+-- CONFIRM BUTTON
+local confirm = Instance.new("TextButton", frame)
+confirm.Position = UDim2.new(0,10,0,130)
+confirm.Size = UDim2.new(1,-20,0,30)
+confirm.Text = "Xác nhận"
+confirm.BackgroundColor3 = Color3.fromRGB(0,170,255)
+
+-- BUY BUTTON
+local buy = Instance.new("TextButton", frame)
+buy.Position = UDim2.new(0,10,0,170)
+buy.Size = UDim2.new(1,-20,0,30)
+buy.Text = "Mua (1000 R$)"
+buy.BackgroundColor3 = Color3.fromRGB(0,255,120)
+
+-- CREDIT
+local credit = Instance.new("TextLabel", frame)
+credit.Position = UDim2.new(0,0,1,-20)
+credit.Size = UDim2.new(1,0,0,20)
+credit.Text = "TikTok: Miu♡♡"
+credit.TextScaled = true
+credit.BackgroundTransparency = 1
+credit.TextColor3 = Color3.new(1,1,1)
+
+-- LOGIC
+local fakeRobux = 0
+
+local function update()
+	balance.Text = fakeRobux .. " R$"
+end
+
+confirm.MouseButton1Click:Connect(function()
+	local num = tonumber(box.Text)
+	if num then
+		fakeRobux = num
+		update()
+	end
+end)
+
+buy.MouseButton1Click:Connect(function()
+	local price = 1000
+	if fakeRobux >= price then
+		fakeRobux -= price
+		update()
+		buy.Text = "Đã mua!"
+	else
+		buy.Text = "Không đủ"
+	end
+	task.wait(1)
+	buy.Text = "Mua (1000 R$)"
+end)
