@@ -1,87 +1,64 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local gui = Instance.new("ScreenGui", game.CoreGui)
 
+local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "FakeRobuxUI"
 
--- MAIN FRAME
+-- MAIN
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 220)
-frame.Position = UDim2.new(0, 20, 0, 100)
-frame.BackgroundColor3 = Color3.fromRGB(20,20,30)
-frame.Active = true
-frame.Draggable = true
+frame.Size = UDim2.new(0, 260, 0, 200)
+frame.Position = UDim2.new(0.5, -130, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(20, 0, 0)
+frame.BorderSizePixel = 3
+frame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 
 -- TITLE
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,30)
-title.Text = "💰 Fake Robux"
-title.TextColor3 = Color3.new(1,1,1)
+title.Size = UDim2.new(1, 0, 0, 40)
 title.BackgroundTransparency = 1
+title.Text = "Made by: Miu♡♡"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
 
--- BALANCE
-local balance = Instance.new("TextLabel", frame)
-balance.Position = UDim2.new(0,0,0,40)
-balance.Size = UDim2.new(1,0,0,40)
-balance.Text = "0 R$"
-balance.TextScaled = true
-balance.TextColor3 = Color3.fromRGB(0,255,200)
-balance.BackgroundTransparency = 1
-
--- INPUT
+-- INPUT BOX
 local box = Instance.new("TextBox", frame)
-box.Position = UDim2.new(0,10,0,90)
-box.Size = UDim2.new(1,-20,0,30)
-box.PlaceholderText = "Nhập Robux..."
-box.Text = ""
+box.Position = UDim2.new(0.1, 0, 0.3, 0)
+box.Size = UDim2.new(0.8, 0, 0.2, 0)
+box.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+box.TextColor3 = Color3.new(1,1,1)
+box.Text = "999800"
 
--- CONFIRM BUTTON
-local confirm = Instance.new("TextButton", frame)
-confirm.Position = UDim2.new(0,10,0,130)
-confirm.Size = UDim2.new(1,-20,0,30)
-confirm.Text = "Xác nhận"
-confirm.BackgroundColor3 = Color3.fromRGB(0,170,255)
+-- BUTTON
+local btn = Instance.new("TextButton", frame)
+btn.Position = UDim2.new(0.1, 0, 0.55, 0)
+btn.Size = UDim2.new(0.8, 0, 0.2, 0)
+btn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+btn.Text = "Update Balance"
+btn.TextColor3 = Color3.new(1,1,1)
+btn.TextScaled = true
 
--- BUY BUTTON
-local buy = Instance.new("TextButton", frame)
-buy.Position = UDim2.new(0,10,0,170)
-buy.Size = UDim2.new(1,-20,0,30)
-buy.Text = "Mua (1000 R$)"
-buy.BackgroundColor3 = Color3.fromRGB(0,255,120)
+-- KEY TEXT
+local key = Instance.new("TextLabel", frame)
+key.Position = UDim2.new(0, 0, 0.8, 0)
+key.Size = UDim2.new(1, 0, 0, 30)
+key.BackgroundTransparency = 1
+key.Text = "Key: Lifetime Access"
+key.TextColor3 = Color3.new(1,1,1)
+key.TextScaled = true
 
--- CREDIT
-local credit = Instance.new("TextLabel", frame)
-credit.Position = UDim2.new(0,0,1,-20)
-credit.Size = UDim2.new(1,0,0,20)
-credit.Text = "TikTok: Miu♡♡"
-credit.TextScaled = true
-credit.BackgroundTransparency = 1
-credit.TextColor3 = Color3.new(1,1,1)
-
--- LOGIC
+-- FAKE ROBUX
 local fakeRobux = 0
 
-local function update()
-	balance.Text = fakeRobux .. " R$"
-end
-
-confirm.MouseButton1Click:Connect(function()
+-- UPDATE FUNCTION
+btn.MouseButton1Click:Connect(function()
 	local num = tonumber(box.Text)
 	if num then
 		fakeRobux = num
-		update()
-	end
-end)
-
-buy.MouseButton1Click:Connect(function()
-	local price = 1000
-	if fakeRobux >= price then
-		fakeRobux -= price
-		update()
-		buy.Text = "Đã mua!"
+		btn.Text = "Updated: "..fakeRobux
 	else
-		buy.Text = "Không đủ"
+		btn.Text = "Invalid!"
 	end
+
 	task.wait(1)
-	buy.Text = "Mua (1000 R$)"
+	btn.Text = "Update Balance"
 end)
