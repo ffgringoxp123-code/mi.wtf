@@ -43,7 +43,7 @@ loadingGui:Destroy()
 
 -- MAIN SCRIPT
 local revertedRemotes = {}
-local manualSpamActive = true -- auto chạy luôn
+local manualSpamActive = false -- mặc định tắt
 local CREATOR = "Miu.wtf"
 
 local function isValidRemoteArgs(args)
@@ -125,7 +125,22 @@ b.TextColor3 = Color3.new(1, 1, 1)
 b.Font = Enum.Font.GothamBold
 b.TextSize = 16
 Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
-
+b.MouseButton1Click:Connect(function()
+	if not next(revertedRemotes) then 
+		b.Text = "HIT BALL!" 
+		return 
+	end
+	
+	manualSpamActive = not manualSpamActive
+	
+	if manualSpamActive then
+		b.Text = "SPAMMING"
+		b.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+	else
+		b.Text = "READY"
+		b.BackgroundColor3 = Color3.fromRGB(40, 20, 40)
+	end
+end)
 -- STATUS
 local s = Instance.new("TextLabel", f)
 s.Size = UDim2.new(1, 0, 0, 25)
