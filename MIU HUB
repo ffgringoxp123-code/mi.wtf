@@ -1,592 +1,387 @@
 // ==UserScript==
-// @name         Roblox Fake Robux Pro
+// @name         Fake Robux Premium
 // @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Fake Robux balance và fake mua hàng trên Roblox
+// @version      3.0
+// @description  Fake Robux với UI đẹp, có thể mua hàng ảo
 // @author       Miu♡♡
-// @match        *://www.roblox.com/*
-// @match        *://web.roblox.com/*
+// @match        *://*.roblox.com/*
 // @icon         https://www.roblox.com/favicon.ico
 // @grant        GM_addStyle
-// @run-at       document-start
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    // ===================== CONFIG =====================
     let fakeRobux = 0;
-    const CREDIT_TEXT = 'TikTok: Miu♡♡';
+    const CREDIT = 'TikTok: Miu♡♡';
 
-    // ===================== CSS STYLES =====================
+    // ======================= CSS =======================
     GM_addStyle(`
-        /* Container chính */
-        #fakeRobuxUI {
+        #frContainer {
             position: fixed;
-            z-index: 999999;
-            user-select: none;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            width: 320px;
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border: 2px solid #00d4ff;
-            border-radius: 16px;
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0,0,0,0.5);
             top: 80px;
             left: 20px;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        #fakeRobuxUI.minimized {
-            width: 50px !important;
-            height: 50px !important;
-            border-radius: 50% !important;
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            z-index: 999999;
+            width: 300px;
+            background: #1a1a2e;
             border: 2px solid #00d4ff;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
-            cursor: pointer;
+            border-radius: 14px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 0 30px rgba(0,212,255,0.3);
+            user-select: none;
             overflow: hidden;
+            transition: all 0.3s;
         }
-        #fakeRobuxUI.minimized .fr-header,
-        #fakeRobuxUI.minimized .fr-body,
-        #fakeRobuxUI.minimized .fr-footer {
-            display: none !important;
+        #frContainer.mini {
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 50% !important;
+            cursor: pointer;
+            background: #1a1a2e;
+            border: 2px solid #00d4ff;
         }
-        #fakeRobuxUI.minimized .fr-minimize-btn {
-            display: flex !important;
-            width: 100%;
-            height: 100%;
+        #frContainer.mini * { display: none; }
+        #frContainer.mini::after {
+            content: '➡';
+            display: flex;
             justify-content: center;
             align-items: center;
+            height: 100%;
             font-size: 22px;
             color: #00d4ff;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            transform: rotate(0deg);
+            animation: frBlink 1s infinite;
         }
-        /* Header */
-        .fr-header {
+        @keyframes frBlink { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        .frHead {
             background: linear-gradient(90deg, #00d4ff, #090979);
-            padding: 12px 16px;
+            padding: 10px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             cursor: move;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .fr-header-title {
             color: #fff;
-            font-weight: 700;
-            font-size: 15px;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(0,212,255,0.5);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: bold;
+            font-size: 14px;
         }
-        .fr-header-title::before {
-            content: '💰';
-            font-size: 18px;
-        }
-        .fr-header-controls {
-            display: flex;
-            gap: 6px;
-        }
-        .fr-minimize-btn, .fr-close-btn {
-            background: rgba(255,255,255,0.15);
+        .frHeadBtns { display: flex; gap: 4px; }
+        .frHeadBtns button {
+            background: rgba(255,255,255,0.2);
             border: none;
             color: #fff;
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
+            width: 24px;
+            height: 24px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .fr-minimize-btn:hover { background: rgba(0,212,255,0.4); }
-        .fr-close-btn:hover { background: rgba(255,50,50,0.6); }
-        /* Body */
-        .fr-body {
-            padding: 18px 16px 12px;
-        }
-        .fr-balance-display {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 16px;
+            font-size: 13px;
+            line-height: 24px;
             text-align: center;
+            padding: 0;
         }
-        .fr-balance-label {
-            color: #8a8aa0;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 4px;
-        }
-        .fr-balance-amount {
-            color: #00d4ff;
-            font-size: 32px;
-            font-weight: 800;
-            text-shadow: 0 0 20px rgba(0,212,255,0.4);
-        }
-        .fr-balance-amount::after {
-            content: ' R$';
-            font-size: 20px;
-            color: #00a3cc;
-        }
-        .fr-input-group {
-            display: flex;
-            gap: 8px;
+        .frHeadBtns button:hover { background: rgba(255,255,255,0.4); }
+
+        .frBody { padding: 14px; }
+
+        .frBalanceBox {
+            background: #0d0d1a;
+            border: 1px solid #00d4ff33;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
             margin-bottom: 12px;
         }
-        .fr-input {
+        .frBalanceLabel { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .frBalanceAmt { color: #00d4ff; font-size: 28px; font-weight: 800; }
+        .frBalanceAmt:after { content: ' R$'; font-size: 16px; color: #0099bb; }
+
+        .frInputGroup { display: flex; gap: 6px; margin-bottom: 10px; }
+        .frInputGroup input {
             flex: 1;
-            padding: 10px 14px;
-            background: rgba(0,0,0,0.5);
+            padding: 8px 12px;
+            background: #0d0d1a;
             border: 1px solid #00d4ff;
-            border-radius: 10px;
+            border-radius: 8px;
             color: #fff;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 14px;
             outline: none;
-            transition: all 0.2s;
         }
-        .fr-input:focus {
-            border-color: #ff00ea;
-            box-shadow: 0 0 15px rgba(255,0,234,0.3);
-        }
-        .fr-input::placeholder {
-            color: #555;
-            font-weight: 400;
-        }
-        .fr-btn {
-            padding: 10px 20px;
+        .frInputGroup input:focus { border-color: #ff00ea; }
+        .frInputGroup button {
+            padding: 8px 16px;
             background: linear-gradient(135deg, #00d4ff, #0080ff);
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             color: #fff;
-            font-weight: 700;
-            font-size: 14px;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             white-space: nowrap;
+            font-size: 13px;
         }
-        .fr-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(0,212,255,0.5);
+        .frInputGroup button:hover { transform: scale(1.03); }
+
+        .frShop {
+            border-top: 1px solid #ffffff15;
+            padding-top: 10px;
+            margin-top: 4px;
         }
-        .fr-btn:active {
-            transform: scale(0.95);
-        }
-        .fr-btn-secondary {
-            background: linear-gradient(135deg, #ff00ea, #c000b0);
-        }
-        .fr-btn-secondary:hover {
-            box-shadow: 0 0 20px rgba(255,0,234,0.5);
-        }
-        .fr-btn-success {
-            background: linear-gradient(135deg, #00e676, #00c853);
-        }
-        .fr-btn-success:hover {
-            box-shadow: 0 0 20px rgba(0,230,118,0.5);
-        }
-        .fr-btn-danger {
-            background: linear-gradient(135deg, #ff1744, #d50000);
-        }
-        .fr-btn-danger:hover {
-            box-shadow: 0 0 20px rgba(255,23,68,0.5);
-        }
-        .fr-buy-section {
-            margin-top: 12px;
-            padding: 12px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            border: 1px dashed rgba(0,212,255,0.2);
-        }
-        .fr-buy-title {
-            color: #aaa;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        .fr-buy-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-        .fr-buy-btn {
-            padding: 8px 4px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
+        .frShopTitle { color: #888; font-size: 11px; text-align: center; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .frShopGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .frShopBtn {
+            background: #ffffff08;
+            border: 1px solid #ffffff15;
             border-radius: 8px;
             color: #ccc;
+            padding: 7px 4px;
+            cursor: pointer;
+            font-size: 11px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .frShopBtn:hover { background: #00d4ff20; border-color: #00d4ff; color: #fff; }
+        .frShopBtn .price { display: block; color: #00d4ff; font-weight: 700; font-size: 12px; margin-top: 2px; }
+        .frShopBtn:disabled { opacity: 0.3; cursor: default; }
+
+        .frExtraBtns { display: flex; gap: 5px; margin-top: 8px; }
+        .frExtraBtns button {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 7px;
+            color: #fff;
+            font-weight: bold;
             font-size: 11px;
             cursor: pointer;
-            transition: all 0.2s;
+        }
+        .frExtraBtns button:hover { transform: scale(1.03); }
+
+        .frFooter {
+            padding: 6px 14px 10px;
             text-align: center;
-        }
-        .fr-buy-btn:hover {
-            background: rgba(0,212,255,0.2);
-            border-color: #00d4ff;
-            color: #fff;
-        }
-        .fr-buy-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        .fr-buy-btn .fr-item-price {
-            display: block;
-            color: #00d4ff;
-            font-weight: 700;
-            font-size: 13px;
-            margin-top: 2px;
-        }
-        /* Footer */
-        .fr-footer {
-            padding: 8px 16px 12px;
-            text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .fr-credit {
+            border-top: 1px solid #ffffff08;
+            font-size: 11px;
             color: #666;
-            font-size: 12px;
-            letter-spacing: 0.5px;
         }
-        .fr-credit span {
-            color: #ff00ea;
-            font-weight: 700;
+        .frFooter span {
             background: linear-gradient(90deg, #ff00ea, #00d4ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-weight: bold;
         }
-        /* Notification */
-        .fr-notification {
+
+        .frToast {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000000;
-            padding: 14px 24px;
-            border-radius: 12px;
+            padding: 12px 20px;
+            border-radius: 10px;
             color: #fff;
             font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            transform: translateX(120%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            max-width: 350px;
+            font-size: 13px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            transform: translateX(200px);
+            transition: 0.4s;
+            max-width: 300px;
         }
-        .fr-notification.show {
-            transform: translateX(0);
-        }
-        .fr-notification.success {
-            background: linear-gradient(135deg, #00e676, #00c853);
-        }
-        .fr-notification.error {
-            background: linear-gradient(135deg, #ff1744, #d50000);
-        }
-        .fr-notification.info {
-            background: linear-gradient(135deg, #00d4ff, #0080ff);
-        }
-        /* Arrow when minimized */
-        .fr-arrow-icon {
-            font-size: 24px;
-            color: #00d4ff;
-            text-shadow: 0 0 10px rgba(0,212,255,0.8);
-            animation: frPulse 2s infinite;
-        }
-        @keyframes frPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        /* Drag handle */
-        .fr-drag-handle {
-            cursor: move;
-        }
+        .frToast.show { transform: translateX(0); }
+        .frToast.ok { background: #00c853; }
+        .frToast.fail { background: #ff1744; }
+        .frToast.info { background: #0080ff; }
     `);
 
-    // ===================== NOTIFICATION =====================
-    function showNotification(message, type = 'info') {
-        const existing = document.querySelector('.fr-notification');
-        if (existing) existing.remove();
-
-        const notif = document.createElement('div');
-        notif.className = `fr-notification ${type}`;
-        notif.textContent = message;
-        document.body.appendChild(notif);
-
-        requestAnimationFrame(() => {
-            notif.classList.add('show');
-        });
-
-        setTimeout(() => {
-            notif.classList.remove('show');
-            setTimeout(() => notif.remove(), 400);
-        }, 3000);
-    }
-
-    // ===================== FORMAT NUMBER =====================
-    function formatNumber(num) {
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-
-    // ===================== UPDATE DISPLAY =====================
-    function updateBalanceDisplay() {
-        const el = document.querySelector('.fr-balance-amount');
-        if (el) {
-            el.textContent = formatNumber(fakeRobux);
+    // ======================= TOAST =======================
+    function toast(msg, type = 'info') {
+        let el = document.querySelector('.frToast');
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'frToast';
+            document.body.appendChild(el);
         }
-        // Also try to update Roblox navbar balance
+        el.className = 'frToast ' + type;
+        el.textContent = msg;
+        requestAnimationFrame(() => el.classList.add('show'));
+        clearTimeout(el._t);
+        el._t = setTimeout(() => {
+            el.classList.remove('show');
+        }, 2500);
+    }
+
+    // ======================= FORMAT =======================
+    function fmt(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+    // ======================= UPDATE =======================
+    function updateUI() {
+        const el = document.querySelector('.frBalanceAmt');
+        if (el) el.textContent = fmt(fakeRobux);
+
+        // Ghi đè Robux trên Roblox
         try {
-            const navRobux = document.querySelector('#nav-robux-amount, .navbar-robux-amount, [class*="robux-amount"], .icon-robux-16x16');
-            if (navRobux) {
-                navRobux.textContent = formatNumber(fakeRobux);
-            }
+            const a = document.querySelector('#nav-robux-amount');
+            if (a) a.textContent = fmt(fakeRobux);
+            const b = document.querySelector('#nav-robux-balance');
+            if (b) b.textContent = fmt(fakeRobux) + ' Robux';
         } catch(e) {}
     }
 
-    // ===================== FAKE BUY =====================
-    function fakeBuy(amount, itemName) {
-        return new Promise((resolve) => {
-            if (fakeRobux < amount) {
-                showNotification(`❌ Không đủ Robux! Cần ${formatNumber(amount)} R$ nhưng bạn chỉ có ${formatNumber(fakeRobux)} R$`, 'error');
-                resolve(false);
+    // ======================= FAKE BUY =======================
+    function fakeBuy(price, name) {
+        return new Promise(done => {
+            if (fakeRobux < price) {
+                toast('❌ Ko đủ Robux! Cần ' + fmt(price) + ' R$', 'fail');
+                done(false);
                 return;
             }
-
-            // Hiệu ứng loading
-            showNotification(`🛒 Đang xử lý giao dịch "${itemName}"...`, 'info');
-
+            toast('⏳ Đang mua ' + name + '...', 'info');
             setTimeout(() => {
-                fakeRobux -= amount;
-                updateBalanceDisplay();
-                // Cập nhật balance trên Roblox luôn nếu có thể
-                try {
-                    const els = document.querySelectorAll('[class*="robux"], [id*="robux"], [class*="currency"]');
-                    els.forEach(el => {
-                        if (el.textContent && el.textContent.includes(',')) {
-                            el.textContent = formatNumber(fakeRobux);
-                        }
-                    });
-                } catch(e) {}
-                showNotification(`✅ Mua "${itemName}" thành công! -${formatNumber(amount)} R$, Số dư còn lại: ${formatNumber(fakeRobux)} R$`, 'success');
-                resolve(true);
-            }, 1500 + Math.random() * 1000);
+                fakeRobux -= price;
+                updateUI();
+                toast('✅ Mua ' + name + ' thành công! -' + fmt(price) + ' R$', 'ok');
+                done(true);
+            }, 1200);
         });
     }
 
-    // ===================== BUILD UI =====================
-    function buildUI() {
-        const existing = document.getElementById('fakeRobuxUI');
-        if (existing) existing.remove();
+    // ======================= BUILD =======================
+    function build() {
+        if (document.getElementById('frContainer')) return;
 
-        const container = document.createElement('div');
-        container.id = 'fakeRobuxUI';
+        const c = document.createElement('div');
+        c.id = 'frContainer';
 
-        // ---- HEADER ----
-        const header = document.createElement('div');
-        header.className = 'fr-header fr-drag-handle';
-        header.innerHTML = `
-            <div class="fr-header-title">Fake Robux</div>
-            <div class="fr-header-controls">
-                <button class="fr-minimize-btn" id="frMinimizeBtn" title="Thu nhỏ">➖</button>
-                <button class="fr-close-btn" id="frCloseBtn" title="Đóng">✕</button>
-            </div>
-        `;
-
-        // ---- BODY ----
-        const body = document.createElement('div');
-        body.className = 'fr-body';
-        body.innerHTML = `
-            <div class="fr-balance-display">
-                <div class="fr-balance-label">SỐ DƯ ROBUX ẢO</div>
-                <div class="fr-balance-amount">0</div>
-            </div>
-            <div class="fr-input-group">
-                <input type="number" class="fr-input" id="frRobuxInput" placeholder="Nhập số Robux..." min="0" value="100000">
-                <button class="fr-btn" id="frConfirmBtn">✔ Xác nhận</button>
-            </div>
-            <div class="fr-buy-section">
-                <div class="fr-buy-title">🛒 MUA SẮM ẢO (Robux ảo bị trừ)</div>
-                <div class="fr-buy-grid">
-                    <button class="fr-buy-btn" data-amount="25">Bloxy Cola <span class="fr-item-price">25 R$</span></button>
-                    <button class="fr-buy-btn" data-amount="100">Speed coil <span class="fr-item-price">100 R$</span></button>
-                    <button class="fr-buy-btn" data-amount="400">Superball <span class="fr-item-price">400 R$</span></button>
-                    <button class="fr-buy-btn" data-amount="800">Dominus <span class="fr-item-price">800 R$</span></button>
-                    <button class="fr-buy-btn" data-amount="2500">Head Slice <span class="fr-item-price">2,500 R$</span></button>
-                    <button class="fr-buy-btn" data-amount="10000">Sparkle TF <span class="fr-item-price">10,000 R$</span></button>
-                </div>
-                <div style="margin-top: 8px; display: flex; gap: 6px;">
-                    <button class="fr-btn fr-btn-danger" id="frResetBtn" style="flex:1; font-size:12px; padding:8px;">🔄 Reset</button>
-                    <button class="fr-btn fr-btn-secondary" id="frAdd1mBtn" style="flex:1; font-size:12px; padding:8px;">+1,000,000</button>
+        c.innerHTML = `
+            <div class="frHead">
+                <span>💰 Fake Robux</span>
+                <div class="frHeadBtns">
+                    <button id="frMini">➖</button>
+                    <button id="frClose">✕</button>
                 </div>
             </div>
+            <div class="frBody">
+                <div class="frBalanceBox">
+                    <div class="frBalanceLabel">SỐ DƯ ROBUX ẢO</div>
+                    <div class="frBalanceAmt">0</div>
+                </div>
+                <div class="frInputGroup">
+                    <input type="number" id="frInput" placeholder="Nhập số Robux..." min="0" value="999999">
+                    <button id="frConfirm">✔ Xác nhận</button>
+                </div>
+                <div class="frShop">
+                    <div class="frShopTitle">🛒 MUA HÀNG ẢO (Robux ảo bị trừ)</div>
+                    <div class="frShopGrid">
+                        <div class="frShopBtn" data-p="25" data-n="Bloxy Cola">🥤 Bloxy Cola <span class="price">25 R$</span></div>
+                        <div class="frShopBtn" data-p="100" data-n="Speed Coil">⚡ Speed Coil <span class="price">100 R$</span></div>
+                        <div class="frShopBtn" data-p="400" data-n="Superball">🏀 Superball <span class="price">400 R$</span></div>
+                        <div class="frShopBtn" data-p="800" data-n="Dominus">👑 Dominus <span class="price">800 R$</span></div>
+                        <div class="frShopBtn" data-p="2500" data-n="Head Slice">🔪 Head Slice <span class="price">2,500 R$</span></div>
+                        <div class="frShopBtn" data-p="10000" data-n="Sparkle TF">✨ Sparkle TF <span class="price">10,000 R$</span></div>
+                    </div>
+                    <div class="frExtraBtns">
+                        <button id="frReset" style="background:#ff1744;">🔄 Reset</button>
+                        <button id="frAdd1m" style="background:#c000b0;">➕ 1 Triệu</button>
+                    </div>
+                </div>
+            </div>
+            <div class="frFooter">✨ <span>${CREDIT}</span> ✨</div>
         `;
 
-        // ---- FOOTER ----
-        const footer = document.createElement('div');
-        footer.className = 'fr-footer';
-        footer.innerHTML = `<div class="fr-credit">✨ <span>${CREDIT_TEXT}</span> ✨</div>`;
+        document.body.appendChild(c);
 
-        container.appendChild(header);
-        container.appendChild(body);
-        container.appendChild(footer);
-        document.body.appendChild(container);
+        // Confirm
+        document.getElementById('frConfirm').onclick = () => {
+            let v = parseInt(document.getElementById('frInput').value);
+            if (isNaN(v) || v < 0) v = 0;
+            fakeRobux = v;
+            updateUI();
+            toast('✅ Đã đặt ' + fmt(fakeRobux) + ' Robux ảo!', 'ok');
+        };
+        document.getElementById('frInput').onkeydown = e => {
+            if (e.key === 'Enter') document.getElementById('frConfirm').click();
+        };
 
-        // ===================== EVENTS =====================
-
-        // 1. Xác nhận nhập Robux
-        document.getElementById('frConfirmBtn').addEventListener('click', () => {
-            const input = document.getElementById('frRobuxInput');
-            let val = parseInt(input.value);
-            if (isNaN(val) || val < 0) val = 0;
-            fakeRobux = val;
-            updateBalanceDisplay();
-            showNotification(`✅ Đã fake ${formatNumber(fakeRobux)} Robux thành công!`, 'success');
-        });
-
-        // 2. Enter key
-        document.getElementById('frRobuxInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('frConfirmBtn').click();
-            }
-        });
-
-        // 3. Nút mua hàng ảo
-        document.querySelectorAll('.fr-buy-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const amount = parseInt(this.dataset.amount);
-                const itemName = this.childNodes[0].textContent.trim();
+        // Shop buttons
+        document.querySelectorAll('.frShopBtn').forEach(btn => {
+            btn.onclick = async function() {
                 this.disabled = true;
-                await fakeBuy(amount, itemName);
+                await fakeBuy(parseInt(this.dataset.p), this.dataset.n);
                 this.disabled = false;
-            });
+            };
         });
 
-        // 4. Reset
-        document.getElementById('frResetBtn').addEventListener('click', () => {
+        // Reset
+        document.getElementById('frReset').onclick = () => {
             fakeRobux = 0;
-            updateBalanceDisplay();
-            document.getElementById('frRobuxInput').value = 0;
-            showNotification('🔄 Đã reset Robux về 0', 'info');
-        });
+            document.getElementById('frInput').value = 0;
+            updateUI();
+            toast('🔄 Đã reset về 0', 'info');
+        };
 
-        // 5. +1M
-        document.getElementById('frAdd1mBtn').addEventListener('click', () => {
+        // +1M
+        document.getElementById('frAdd1m').onclick = () => {
             fakeRobux += 1000000;
-            updateBalanceDisplay();
-            document.getElementById('frRobuxInput').value = fakeRobux;
-            showNotification(`💰 Đã thêm 1,000,000 R$! Tổng: ${formatNumber(fakeRobux)} R$`, 'success');
-        });
+            document.getElementById('frInput').value = fakeRobux;
+            updateUI();
+            toast('💰 +1,000,000 R$! Tổng: ' + fmt(fakeRobux) + ' R$', 'ok');
+        };
 
-        // 6. Minimize
-        document.getElementById('frMinimizeBtn').addEventListener('click', () => {
-            container.classList.toggle('minimized');
-            const btn = document.getElementById('frMinimizeBtn');
-            if (container.classList.contains('minimized')) {
-                btn.textContent = '↗';
-                btn.innerHTML = '';
-                const arrow = document.createElement('span');
-                arrow.className = 'fr-arrow-icon';
-                arrow.textContent = '➡';
-                btn.appendChild(arrow);
-            } else {
-                btn.textContent = '➖';
-            }
-        });
+        // Minimize
+        document.getElementById('frMini').onclick = () => {
+            c.classList.toggle('mini');
+            document.getElementById('frMini').textContent = c.classList.contains('mini') ? '○' : '➖';
+        };
 
-        // 7. Close
-        document.getElementById('frCloseBtn').addEventListener('click', () => {
-            container.style.transform = 'scale(0)';
-            container.style.opacity = '0';
-            setTimeout(() => {
-                container.remove();
-            }, 300);
-        });
+        // Close
+        document.getElementById('frClose').onclick = () => {
+            c.style.transform = 'scale(0)';
+            c.style.opacity = '0';
+            setTimeout(() => c.remove(), 300);
+        };
 
-        // ===================== DRAG (di chuyển) =====================
-        let isDragging = false;
-        let dragOffsetX, dragOffsetY;
+        // ======================= DRAG =======================
+        let dragging = false, ox, oy;
+        const head = c.querySelector('.frHead');
+        head.onmousedown = e => {
+            if (e.target.closest('.frHeadBtns')) return;
+            dragging = true;
+            const rect = c.getBoundingClientRect();
+            ox = e.clientX - rect.left;
+            oy = e.clientY - rect.top;
+            c.style.transition = 'none';
+        };
+        document.onmousemove = e => {
+            if (!dragging) return;
+            let x = e.clientX - ox, y = e.clientY - oy;
+            x = Math.max(0, Math.min(x, window.innerWidth - c.offsetWidth));
+            y = Math.max(0, Math.min(y, window.innerHeight - c.offsetHeight));
+            c.style.left = x + 'px';
+            c.style.top = y + 'px';
+        };
+        document.onmouseup = () => {
+            if (dragging) { dragging = false; c.style.transition = ''; }
+        };
 
-        header.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.fr-header-controls')) return;
-            isDragging = true;
-            const rect = container.getBoundingClientRect();
-            dragOffsetX = e.clientX - rect.left;
-            dragOffsetY = e.clientY - rect.top;
-            container.style.cursor = 'grabbing';
-            container.style.transition = 'none';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            let x = e.clientX - dragOffsetX;
-            let y = e.clientY - dragOffsetY;
-            // Keep in viewport
-            const w = container.offsetWidth;
-            const h = container.offsetHeight;
-            x = Math.max(0, Math.min(x, window.innerWidth - w));
-            y = Math.max(0, Math.min(y, window.innerHeight - h));
-            container.style.left = x + 'px';
-            container.style.top = y + 'px';
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                container.style.cursor = '';
-                container.style.transition = '';
-            }
-        });
-
-        // ===================== PERSIST ROBUX ON ROBLOX PAGE =====================
-        // Interval để cập nhật liên tục balance trên Roblox
-        setInterval(() => {
-            try {
-                const robuxElements = document.querySelectorAll('#nav-robux-amount, .navbar-robux-amount, [class*="robux-amount"], .icon-robux-16x16');
-                robuxElements.forEach(el => {
-                    if (el.textContent && el.textContent !== formatNumber(fakeRobux) && fakeRobux > 0) {
-                        el.textContent = formatNumber(fakeRobux);
-                    }
-                });
-            } catch(e) {}
-        }, 500);
-
-        // Initial update
-        updateBalanceDisplay();
-        if (fakeRobux > 0) {
-            showNotification(`💰 Fake Robux: ${formatNumber(fakeRobux)} R$ đã sẵn sàng!`, 'info');
-        }
+        // ======================= PERSIST =======================
+        setInterval(updateUI, 1000);
+        updateUI();
     }
 
-    // ===================== INIT =====================
-    // Wait for DOM
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', buildUI);
+    // ======================= INIT =======================
+    if (document.readyState === 'complete') {
+        build();
     } else {
-        buildUI();
+        window.addEventListener('load', build);
     }
 
-    // Retry if page changes (SPA)
-    let retryCount = 0;
-    const retryInterval = setInterval(() => {
-        if (!document.getElementById('fakeRobuxUI') && retryCount < 20) {
-            buildUI();
-            retryCount++;
+    // Retry if SPA
+    let tries = 0;
+    const iv = setInterval(() => {
+        if (!document.getElementById('frContainer') && tries < 15) {
+            build();
+            tries++;
         } else {
-            clearInterval(retryInterval);
+            clearInterval(iv);
         }
-    }, 3000);
+    }, 2000);
 
-    console.log('%c🎮 Fake Robux Script Loaded!', 'color: #00d4ff; font-size: 16px; font-weight: bold;');
-    console.log(`%c✨ ${CREDIT_TEXT}`, 'color: #ff00ea; font-size: 14px;`);
-
+    console.log('✅ Fake Robux Premium by Miu♡♡ loaded!');
 })();
