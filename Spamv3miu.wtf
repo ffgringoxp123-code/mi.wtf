@@ -194,7 +194,7 @@ task.spawn(function()
 			s.Text = "NEED DATA"
 		elseif not manualSpamActive then 
 			b.Text = "READY"
-			s.Text = "STATUS: Miu hub"
+			s.Text = "TIKTOK: Miu♡♡"
 		else
 			s.Text = "CPS: " .. math.random(400, 700)
 			b.Text = "SPAMMING"
