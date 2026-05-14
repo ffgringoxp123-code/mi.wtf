@@ -1,0 +1,325 @@
+-- ====== APEX FREE - GUI CHÍNH ======
+
+-- Tạo ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ApexFreeGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game:GetService("CoreGui")
+
+-- ====== FRAME CHÍNH ======
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 350, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = false
+mainFrame.Draggable = false
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- Bo góc
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 14)
+mainCorner.Parent = mainFrame
+
+-- Gradient nền
+local mainGradient = Instance.new("UIGradient")
+mainGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(22, 22, 35)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 14, 22))
+})
+mainGradient.Parent = mainFrame
+
+-- Viền neon đỏ
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 2
+mainStroke.Color = Color3.fromRGB(255, 40, 40)
+mainStroke.Transparency = 0.25
+mainStroke.Parent = mainFrame
+
+-- ====== TIÊU ĐỀ ======
+local titleFrame = Instance.new("Frame")
+titleFrame.Name = "TitleFrame"
+titleFrame.Size = UDim2.new(1, 0, 0, 55)
+titleFrame.Position = UDim2.new(0, 0, 0, 0)
+titleFrame.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+titleFrame.BackgroundTransparency = 0.85
+titleFrame.BorderSizePixel = 0
+titleFrame.Parent = mainFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Text = "ᴀᴘᴇx ғʀᴇᴇ"
+titleLabel.Size = UDim2.new(1, -70, 1, 0)
+titleLabel.Position = UDim2.new(0, 15, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 26
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.TextScaled = true
+titleLabel.Parent = titleFrame
+
+-- Đường gạch dưới
+local underline = Instance.new("Frame")
+underline.Name = "Underline"
+underline.Size = UDim2.new(0.5, 0, 0, 2)
+underline.Position = UDim2.new(0.05, 0, 1, -1)
+underline.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+underline.BackgroundTransparency = 0.3
+underline.BorderSizePixel = 0
+underline.Parent = titleFrame
+
+-- ====== NÚT THU NHỎ ======
+local minimizeButton = Instance.new("ImageButton")
+minimizeButton.Name = "MinimizeButton"
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -65, 0, 12)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+minimizeButton.BackgroundTransparency = 0.25
+minimizeButton.BorderSizePixel = 0
+minimizeButton.Parent = mainFrame
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 6)
+minCorner.Parent = minimizeButton
+
+local minIcon = Instance.new("TextLabel")
+minIcon.Name = "MinIcon"
+minIcon.Text = "−"
+minIcon.Size = UDim2.new(1, 0, 1, 0)
+minIcon.BackgroundTransparency = 1
+minIcon.Font = Enum.Font.GothamBold
+minIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+minIcon.TextSize = 20
+minIcon.TextScaled = true
+minIcon.Parent = minimizeButton
+
+-- ====== NÚT ĐÓNG ======
+local closeButton = Instance.new("ImageButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -33, 0, 12)
+closeButton.BackgroundColor3 = Color3.fromRGB(180, 25, 25)
+closeButton.BackgroundTransparency = 0.25
+closeButton.BorderSizePixel = 0
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeButton
+
+local closeIcon = Instance.new("TextLabel")
+closeIcon.Name = "CloseIcon"
+closeIcon.Text = "×"
+closeIcon.Size = UDim2.new(1, 0, 1, 0)
+closeIcon.BackgroundTransparency = 1
+closeIcon.Font = Enum.Font.GothamBold
+closeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeIcon.TextSize = 20
+closeIcon.TextScaled = true
+closeIcon.Parent = closeButton
+
+-- ====== KHU VỰC NỘI DUNG ======
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, -16, 1, -75)
+contentFrame.Position = UDim2.new(0, 8, 0, 62)
+contentFrame.BackgroundColor3 = Color3.fromRGB(26, 26, 40)
+contentFrame.BackgroundTransparency = 0.15
+contentFrame.BorderSizePixel = 0
+contentFrame.ClipsDescendants = true
+contentFrame.Parent = mainFrame
+
+local contentCorner = Instance.new("UICorner")
+contentCorner.CornerRadius = UDim.new(0, 10)
+contentCorner.Parent = contentFrame
+
+local contentStroke = Instance.new("UIStroke")
+contentStroke.Thickness = 1
+contentStroke.Color = Color3.fromRGB(255, 255, 255)
+contentStroke.Transparency = 0.92
+contentStroke.Parent = contentFrame
+
+-- ====== CHỮ APEX FREE Ở GIỮA ======
+local centerText = Instance.new("TextLabel")
+centerText.Name = "CenterText"
+centerText.Text = "APEX FREE"
+centerText.Size = UDim2.new(1, 0, 1, 0)
+centerText.BackgroundTransparency = 1
+centerText.Font = Enum.Font.GothamBlack
+centerText.TextColor3 = Color3.fromRGB(255, 50, 50)
+centerText.TextSize = 40
+centerText.TextTransparency = 0.15
+centerText.TextScaled = true
+centerText.Parent = contentFrame
+
+-- Chữ phụ bên dưới
+local subText = Instance.new("TextLabel")
+subText.Name = "SubText"
+subText.Text = "Blade Ball"
+subText.Size = UDim2.new(1, 0, 0, 30)
+subText.Position = UDim2.new(0, 0, 0.55, 0)
+subText.BackgroundTransparency = 1
+subText.Font = Enum.Font.Gotham
+subText.TextColor3 = Color3.fromRGB(180, 180, 200)
+subText.TextSize = 18
+subText.TextTransparency = 0.3
+subText.TextScaled = true
+subText.Parent = contentFrame
+
+-- ====== THANH TRẠNG THÁI ======
+local statusBar = Instance.new("Frame")
+statusBar.Name = "StatusBar"
+statusBar.Size = UDim2.new(1, -16, 0, 30)
+statusBar.Position = UDim2.new(0, 8, 1, -38)
+statusBar.BackgroundColor3 = Color3.fromRGB(20, 20, 32)
+statusBar.BackgroundTransparency = 0.2
+statusBar.BorderSizePixel = 0
+statusBar.Parent = mainFrame
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 6)
+statusCorner.Parent = statusBar
+
+local statusText = Instance.new("TextLabel")
+statusText.Name = "StatusText"
+statusText.Text = "● READY"
+statusText.Size = UDim2.new(1, -10, 1, 0)
+statusText.Position = UDim2.new(0, 8, 0, 0)
+statusText.BackgroundTransparency = 1
+statusText.Font = Enum.Font.Gotham
+statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+statusText.TextSize = 12
+statusText.TextXAlignment = Enum.TextXAlignment.Left
+statusText.Parent = statusBar
+
+local versionText = Instance.new("TextLabel")
+versionText.Name = "VersionText"
+versionText.Text = "v1.0"
+versionText.Size = UDim2.new(0, 45, 1, 0)
+versionText.Position = UDim2.new(1, -48, 0, 0)
+versionText.BackgroundTransparency = 1
+versionText.Font = Enum.Font.Gotham
+versionText.TextColor3 = Color3.fromRGB(140, 140, 160)
+versionText.TextSize = 11
+versionText.TextXAlignment = Enum.TextXAlignment.Right
+versionText.Parent = statusBar
+
+-- ====== CHỨC NĂNG THU NHỎ ======
+local isMinimized = false
+local originalSize = mainFrame.Size
+local originalPos = mainFrame.Position
+
+minimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    
+    if isMinimized then
+        mainFrame:TweenSize(UDim2.new(0, 50, 0, 50), "Out", "Quad", 0.25, true)
+        contentFrame.Visible = false
+        titleFrame.Visible = false
+        closeButton.Visible = false
+        statusBar.Visible = false
+        underline.Visible = false
+        mainStroke.Thickness = 1.5
+        minIcon.Text = "+"
+        minimizeButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        minimizeButton.BackgroundTransparency = 0.15
+        mainFrame.Position = UDim2.new(1, -58, 0, 12)
+        mainCorner.CornerRadius = UDim.new(0, 8)
+    else
+        mainFrame:TweenSize(originalSize, "Out", "Quad", 0.25, true)
+        contentFrame.Visible = true
+        titleFrame.Visible = true
+        closeButton.Visible = true
+        statusBar.Visible = true
+        underline.Visible = true
+        mainStroke.Thickness = 2
+        minIcon.Text = "−"
+        minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        minimizeButton.BackgroundTransparency = 0.25
+        mainFrame.Position = originalPos
+        mainCorner.CornerRadius = UDim.new(0, 14)
+    end
+end)
+
+-- ====== NÚT ĐÓNG ======
+closeButton.MouseButton1Click:Connect(function()
+    mainFrame:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quad", 0.2, true)
+    task.wait(0.2)
+    screenGui:Destroy()
+end)
+
+-- ====== HIỆU ỨNG HOVER ======
+minimizeButton.MouseEnter:Connect(function()
+    if not isMinimized then
+        minimizeButton.BackgroundTransparency = 0.1
+    end
+end)
+minimizeButton.MouseLeave:Connect(function()
+    if not isMinimized then
+        minimizeButton.BackgroundTransparency = 0.25
+    end
+end)
+
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+    closeButton.BackgroundTransparency = 0.1
+end)
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(180, 25, 25)
+    closeButton.BackgroundTransparency = 0.25
+end)
+
+-- ====== PULSE ANIMATION ======
+task.spawn(function()
+    while screenGui and screenGui.Parent do
+        task.wait(0.8)
+        if mainStroke and mainStroke.Parent then
+            mainStroke.Transparency = mainStroke.Transparency == 0.15 and 0.35 or 0.15
+        end
+    end
+end)
+
+-- ====== NOTIFICATION ======
+local notify = Instance.new("Frame")
+notify.Name = "Notify"
+notify.Size = UDim2.new(1, -20, 0, 28)
+notify.Position = UDim2.new(0, 10, 1, -70)
+notify.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+notify.BackgroundTransparency = 0.2
+notify.BorderSizePixel = 0
+notify.Parent = mainFrame
+
+local notifyCorner = Instance.new("UICorner")
+notifyCorner.CornerRadius = UDim.new(0, 6)
+notifyCorner.Parent = notify
+
+local notifyText = Instance.new("TextLabel")
+notifyText.Text = "⚡ Apex Free loaded"
+notifyText.Size = UDim2.new(1, -10, 1, 0)
+notifyText.Position = UDim2.new(0, 8, 0, 0)
+notifyText.BackgroundTransparency = 1
+notifyText.Font = Enum.Font.Gotham
+notifyText.TextColor3 = Color3.fromRGB(255, 255, 255)
+notifyText.TextSize = 12
+notifyText.TextXAlignment = Enum.TextXAlignment.Left
+notifyText.Parent = notify
+
+task.delay(3, function()
+    if notify and notify.Parent then
+        notify:TweenPosition(UDim2.new(0, 10, 1, -42), "Out", "Quad", 0.3, true)
+        notify:TweenSize(UDim2.new(1, -20, 0, 0), "Out", "Quad", 0.2, true)
+        task.wait(0.3)
+        notify:Destroy()
+    end
+end)
+
+print("===== APEX FREE GUI =====")
+print("Kích thước: 350x400")
+print("✅ GUI to, không thể kéo")
+print("✅ Nút thu nhỏ (−) → 50x50")
+print("✅ Nút đóng (×)")
+print("========================")
