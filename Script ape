@@ -1,15 +1,128 @@
 --[[
     Apex Free - Blade Ball Script
-    Sử dụng Kavo UI Library
+    Sử dụng Kavo UI Library - Dark Red Theme
 ]]
 
 -- Load library Kavo UI
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+
+-- Tạo GUI chính với màu đỏ
 local Window = Library.CreateLib("Apex Free", "DarkTheme")
 
--- Tạo Tab chính
-local MainTab = Window:NewTab("Main")
-local MainSection = MainTab:NewSection("Auto Farm")
+-- Tùy chỉnh màu đỏ cho toàn bộ GUI
+local function applyRedTheme()
+    pcall(function()
+        -- Tìm GUI chính
+        local gui = game:GetService("CoreGui"):FindFirstChild("Apex Free")
+        if not gui then
+            gui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Apex Free")
+        end
+        if not gui then return end
+        
+        -- Đặt màu đỏ cho tất cả các frame
+        for _, v in pairs(gui:GetDescendants()) do
+            if v:IsA("Frame") or v:IsA("ScrollingFrame") then
+                v.BorderColor3 = Color3.fromRGB(255, 0, 0)
+                v.BorderSizePixel = 2
+                
+                -- Đổi màu nền thành đỏ đậm
+                if v.Name ~= "Main" and v.Name ~= "Drag" then
+                    v.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+                end
+            end
+            
+            -- Đổi màu button
+            if v:IsA("TextButton") or v:IsA("ImageButton") then
+                v.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+                v.BorderColor3 = Color3.fromRGB(255, 0, 0)
+                v.BorderSizePixel = 2
+                if v:FindFirstChild("UICorner") then
+                    v:FindFirstChild("UICorner"):Destroy()
+                end
+            end
+            
+            -- Đổi màu label
+            if v:IsA("TextLabel") then
+                v.TextColor3 = Color3.fromRGB(255, 50, 50)
+                v.BorderColor3 = Color3.fromRGB(255, 0, 0)
+                v.BorderSizePixel = 1
+            end
+            
+            -- Đổi màu toggle/slider
+            if v:IsA("ImageLabel") then
+                v.BorderColor3 = Color3.fromRGB(255, 0, 0)
+                v.BorderSizePixel = 2
+            end
+        end
+        
+        -- Thêm viền đỏ cho cửa sổ chính
+        local mainFrame = gui:FindFirstChild("Main")
+        if mainFrame then
+            mainFrame.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+            mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+            mainFrame.BorderSizePixel = 3
+            mainFrame.Active = true
+            mainFrame.Draggable = true
+            
+            -- Tạo nút thu nhỏ
+            local minimizeBtn = Instance.new("TextButton")
+            minimizeBtn.Name = "MinimizeBtn"
+            minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+            minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
+            minimizeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+            minimizeBtn.BorderColor3 = Color3.fromRGB(255, 0, 0)
+            minimizeBtn.BorderSizePixel = 2
+            minimizeBtn.Text = "−"
+            minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            minimizeBtn.TextSize = 20
+            minimizeBtn.Font = Enum.Font.GothamBold
+            minimizeBtn.Parent = mainFrame
+            
+            local isMinimized = false
+            local originalSize = mainFrame.Size
+            
+            minimizeBtn.MouseButton1Click:Connect(function()
+                isMinimized = not isMinimized
+                if isMinimized then
+                    -- Thu nhỏ
+                    mainFrame.Size = UDim2.new(0, 60, 0, 60)
+                    minimizeBtn.Text = "+"
+                    minimizeBtn.Size = UDim2.new(0, 50, 0, 50)
+                    minimizeBtn.Position = UDim2.new(0, 5, 0, 5)
+                    
+                    -- Ẩn nội dung bên trong
+                    for _, v in pairs(mainFrame:GetChildren()) do
+                        if v ~= minimizeBtn and v.Name ~= "Drag" then
+                            v.Visible = false
+                        end
+                    end
+                    
+                    -- Đưa lên góc phải màn hình
+                    mainFrame.Position = UDim2.new(1, -65, 0, 10)
+                else
+                    -- Mở rộng
+                    mainFrame.Size = originalSize
+                    minimizeBtn.Text = "−"
+                    minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+                    minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
+                    
+                    -- Hiện nội dung
+                    for _, v in pairs(mainFrame:GetChildren()) do
+                        if v ~= minimizeBtn then
+                            v.Visible = true
+                        end
+                    end
+                    
+                    -- Đưa về vị trí cũ hoặc giữa màn hình
+                    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -250)
+                end
+            end)
+        end
+    end)
+end
+
+-- Áp dụng theme đỏ
+coroutine.wrap(applyRedTheme)()
 
 -- Biến trạng thái
 local state = {
@@ -21,10 +134,15 @@ local state = {
 local function spamParryLoop()
     while state.SpamParry do
         pcall(function()
-            local args = {
-                [1] = "ParryRequest"
-            }
-            game:GetService("Players"):WaitForChild(game.Players.LocalPlayer.Name).Character:WaitForChild("RemoteEvent"):FireServer(unpack(args))
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            local Character = LocalPlayer.Character
+            if Character then
+                local remoteEvent = Character:FindFirstChild("RemoteEvent") or Character:FindFirstChild("ParryRemote")
+                if remoteEvent then
+                    remoteEvent:FireServer("ParryRequest")
+                end
+            end
         end)
         task.wait(0.001)
     end
@@ -38,22 +156,14 @@ local function autoParry()
             local LocalPlayer = Players.LocalPlayer
             local Character = LocalPlayer.Character
             if Character then
-                for _, v in pairs(Players:GetPlayers()) do
-                    if v ~= LocalPlayer then
-                        local targetChar = v.Character
-                        if targetChar then
-                            local ball = workspace:FindFirstChild("BladeBall") or workspace:FindFirstChild("Ball")
-                            if ball then
-                                local ballPos = ball.Position
-                                local charPos = Character.PrimaryPart.Position
-                                local distance = (ballPos - charPos).Magnitude
-                                if distance < 15 then
-                                    local args = {
-                                        [1] = "ParryRequest"
-                                    }
-                                    Character:FindFirstChild("RemoteEvent"):FireServer(unpack(args))
-                                end
-                            end
+                local remoteEvent = Character:FindFirstChild("RemoteEvent") or Character:FindFirstChild("ParryRemote")
+                if remoteEvent then
+                    -- Tìm bóng
+                    local ball = workspace:FindFirstChild("BladeBall") or workspace:FindFirstChild("Ball")
+                    if ball and Character.PrimaryPart then
+                        local distance = (ball.Position - Character.PrimaryPart.Position).Magnitude
+                        if distance < 20 then
+                            remoteEvent:FireServer("ParryRequest")
                         end
                     end
                 end
@@ -62,6 +172,10 @@ local function autoParry()
         task.wait(0.1)
     end
 end
+
+-- Tạo Tab chính
+local MainTab = Window:NewTab("Main")
+local MainSection = MainTab:NewSection("Auto Farm")
 
 -- Toggle Auto Parry
 MainSection:NewToggle("Auto Parry", "Tự động đỡ bóng", function(value)
@@ -78,3 +192,7 @@ MainSection:NewToggle("Spam Parry", "Spam đỡ liên tục 0.001s", function(va
         coroutine.wrap(spamParryLoop)()
     end
 end)
+
+-- Đợi GUI load xong rồi áp dụng theme lại
+task.wait(1)
+coroutine.wrap(applyRedTheme)()
