@@ -1,0 +1,263 @@
+--[[
+    Apex Free - Blade Ball Script
+    Sử dụng Kavo UI Library - Dark Red Theme
+    Fix: Có thể kéo và thu nhỏ
+]]
+
+-- Load library Kavo UI
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+
+-- Tạo GUI chính
+local Window = Library.CreateLib("Apex Free", "DarkTheme")
+
+-- === FIX: Thêm chức năng kéo và thu nhỏ SAU KHI LIBRARY TẠO GUI ===
+task.wait(0.5)
+
+local function fixGUI()
+    pcall(function()
+        -- Tìm GUI trong CoreGui
+        local gui = game:GetService("CoreGui"):FindFirstChild("Apex Free")
+        if not gui then
+            gui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Apex Free")
+        end
+        if not gui then return end
+        
+        -- Tìm Main Frame
+        local mainFrame = gui:FindFirstChild("Main")
+        if not mainFrame then
+            -- Tìm frame nào có kích thước lớn nhất
+            for _, v in pairs(gui:GetChildren()) do
+                if v:IsA("Frame") and v.Size.X.Offset > 100 then
+                    mainFrame = v
+                    break
+                end
+            end
+        end
+        if not mainFrame then return end
+        
+        -- Bật kéo được
+        mainFrame.Active = true
+        mainFrame.Draggable = true
+        mainFrame.Selectable = true
+        
+        -- Tạo DragFrame nếu chưa có (hỗ trợ kéo)
+        local dragFrame = mainFrame:FindFirstChild("DragFrame")
+        if not dragFrame then
+            dragFrame = Instance.new("Frame")
+            dragFrame.Name = "DragFrame"
+            dragFrame.Size = UDim2.new(1, 0, 0, 30)
+            dragFrame.Position = UDim2.new(0, 0, 0, 0)
+            dragFrame.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+            dragFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+            dragFrame.BorderSizePixel = 2
+            dragFrame.BackgroundTransparency = 0.3
+            dragFrame.Active = true
+            dragFrame.Parent = mainFrame
+            
+            -- Thêm chữ "Apex Free" trên drag bar
+            local titleLabel = Instance.new("TextLabel")
+            titleLabel.Size = UDim2.new(1, -40, 1, 0)
+            titleLabel.Position = UDim2.new(0, 5, 0, 0)
+            titleLabel.BackgroundTransparency = 1
+            titleLabel.Text = "Apex Free"
+            titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            titleLabel.TextSize = 16
+            titleLabel.Font = Enum.Font.GothamBold
+            titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            titleLabel.Parent = dragFrame
+            
+            -- Kéo bằng drag frame
+            local dragging = false
+            local dragInput, dragStart, startPos
+            
+            dragFrame.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = true
+                    dragStart = input.Position
+                    startPos = mainFrame.Position
+                    
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging = false
+                        end
+                    end)
+                end
+            end)
+            
+            dragFrame.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                    dragInput = input
+                end
+            end)
+            
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if dragging and (input == dragInput) then
+                    local delta = input.Position - dragStart
+                    mainFrame.Position = UDim2.new(
+                        startPos.X.Scale,
+                        startPos.X.Offset + delta.X,
+                        startPos.Y.Scale,
+                        startPos.Y.Offset + delta.Y
+                    )
+                end
+            end)
+        end
+        
+        -- Tạo nút thu nhỏ
+        local minimizeBtn = mainFrame:FindFirstChild("MinimizeBtn")
+        if not minimizeBtn then
+            minimizeBtn = Instance.new("TextButton")
+            minimizeBtn.Name = "MinimizeBtn"
+            minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+            minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
+            minimizeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+            minimizeBtn.BorderColor3 = Color3.fromRGB(255, 0, 0)
+            minimizeBtn.BorderSizePixel = 2
+            minimizeBtn.Text = "−"
+            minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            minimizeBtn.TextSize = 20
+            minimizeBtn.Font = Enum.Font.GothamBold
+            minimizeBtn.ZIndex = 10
+            minimizeBtn.Parent = mainFrame
+            
+            local isMinimized = false
+            local originalSize = mainFrame.Size
+            local originalPos = mainFrame.Position
+            
+            minimizeBtn.MouseButton1Click:Connect(function()
+                isMinimized = not isMinimized
+                if isMinimized then
+                    -- Lưu vị trí và kích thước hiện tại
+                    originalSize = mainFrame.Size
+                    originalPos = mainFrame.Position
+                    
+                    -- Thu nhỏ
+                    mainFrame.Size = UDim2.new(0, 60, 0, 60)
+                    minimizeBtn.Text = "+"
+                    minimizeBtn.Size = UDim2.new(0, 50, 0, 50)
+                    minimizeBtn.Position = UDim2.new(0, 5, 0, 5)
+                    
+                    -- Ẩn tất cả nội dung trừ nút minimize
+                    for _, v in pairs(mainFrame:GetChildren()) do
+                        if v ~= minimizeBtn and v ~= dragFrame then
+                            v.Visible = false
+                        end
+                    end
+                    dragFrame.Visible = false
+                    
+                    -- Đưa lên góc phải màn hình
+                    mainFrame.Position = UDim2.new(1, -70, 0, 10)
+                else
+                    -- Mở rộng
+                    mainFrame.Size = originalSize
+                    minimizeBtn.Text = "−"
+                    minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+                    minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
+                    
+                    -- Hiện lại nội dung
+                    for _, v in pairs(mainFrame:GetChildren()) do
+                        v.Visible = true
+                    end
+                    
+                    -- Đưa về vị trí cũ
+                    mainFrame.Position = originalPos
+                end
+            end)
+        end
+        
+        -- Áp dụng theme đỏ
+        for _, v in pairs(gui:GetDescendants()) do
+            if v:IsA("Frame") or v:IsA("ScrollingFrame") then
+                v.BorderColor3 = Color3.fromRGB(255, 0, 0)
+                v.BorderSizePixel = 2
+            end
+            if v:IsA("TextButton") or v:IsA("ImageButton") then
+                v.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+                v.BorderColor3 = Color3.fromRGB(255, 0, 0)
+                v.BorderSizePixel = 2
+            end
+            if v:IsA("TextLabel") then
+                v.TextColor3 = Color3.fromRGB(255, 50, 50)
+            end
+        end
+        
+        mainFrame.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+        mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+        mainFrame.BorderSizePixel = 3
+    end)
+end
+
+-- Áp dụng fix
+coroutine.wrap(fixGUI)()
+
+-- Biến trạng thái
+local state = {
+    AutoParry = false,
+    SpamParry = false
+}
+
+-- Hàm spam parry
+local function spamParryLoop()
+    while state.SpamParry do
+        pcall(function()
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            local Character = LocalPlayer.Character
+            if Character then
+                local remoteEvent = Character:FindFirstChild("RemoteEvent") or Character:FindFirstChild("ParryRemote")
+                if remoteEvent then
+                    remoteEvent:FireServer("ParryRequest")
+                end
+            end
+        end)
+        task.wait(0.001)
+    end
+end
+
+-- Hàm auto parry
+local function autoParry()
+    while state.AutoParry do
+        pcall(function()
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            local Character = LocalPlayer.Character
+            if Character then
+                local remoteEvent = Character:FindFirstChild("RemoteEvent") or Character:FindFirstChild("ParryRemote")
+                if remoteEvent then
+                    local ball = workspace:FindFirstChild("BladeBall") or workspace:FindFirstChild("Ball")
+                    if ball and Character.PrimaryPart then
+                        local distance = (ball.Position - Character.PrimaryPart.Position).Magnitude
+                        if distance < 20 then
+                            remoteEvent:FireServer("ParryRequest")
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(0.1)
+    end
+end
+
+-- Tạo Tab chính
+local MainTab = Window:NewTab("Main")
+local MainSection = MainTab:NewSection("Auto Farm")
+
+-- Toggle Auto Parry
+MainSection:NewToggle("Auto Parry", "Tự động đỡ bóng", function(value)
+    state.AutoParry = value
+    if value then
+        coroutine.wrap(autoParry)()
+    end
+end)
+
+-- Toggle Spam Parry
+MainSection:NewToggle("Spam Parry", "Spam đỡ liên tục 0.001s", function(value)
+    state.SpamParry = value
+    if value then
+        coroutine.wrap(spamParryLoop)()
+    end
+end)
+
+-- Fix lại sau khi GUI load xong
+task.wait(1)
+coroutine.wrap(fixGUI)()
