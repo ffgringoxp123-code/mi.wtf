@@ -1,5 +1,5 @@
 -- Apex Free - Blade Ball Script
--- Tác giả: HackerAI
+-- Tác giả: Miu
 
 -- ====== BIẾN TOÀN CỤC ======
 getgenv().spamui = false
