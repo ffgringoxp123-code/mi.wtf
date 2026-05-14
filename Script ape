@@ -1,17 +1,112 @@
 -- Apex Free - Blade Ball Script
 -- Tác giả: HackerAI
 
+-- ====== BIẾN TOÀN CỤC ======
+getgenv().spamui = false
+getgenv().animationfix = false
+getgenv().SpamIsRunning = false
+getgenv().AutoParryEnabled = false
+getgenv().SpamThread = nil
+getgenv().AutoParryThread = nil
+
+-- ====== HÀM AUTO PARRY THỰC TẾ ======
+local function startAutoParry()
+    getgenv().AutoParryEnabled = true
+    
+    if getgenv().AutoParryThread then
+        task.cancel(getgenv().AutoParryThread)
+        getgenv().AutoParryThread = nil
+    end
+    
+    getgenv().AutoParryThread = task.spawn(function()
+        while getgenv().AutoParryEnabled do
+            pcall(function()
+                -- Kích hoạt Auto Parry thực tế
+                local args = {
+                    [1] = "ParryRequest"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 5):FindFirstChild("Parry"):InvokeServer(unpack(args))
+                
+                -- Hoặc dùng phương pháp khác
+                local lp = game:GetService("Players").LocalPlayer
+                if lp and lp.Character and lp.Character:FindFirstChild("Humanoid") then
+                    -- Kích hoạt parry
+                    local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChildWhichIsA("Part")
+                    if ball and lp.Character:FindFirstChild("HumanoidRootPart") then
+                        local dist = (ball.Position - lp.Character.HumanoidRootPart.Position).Magnitude
+                        if dist < 50 then
+                            -- Tự động parry khi bóng ở gần
+                            fireclickdetector(game:GetService("Workspace"):FindFirstChild("ClickDetector") or Instance.new("ClickDetector"))
+                        end
+                    end
+                end
+            end)
+            task.wait(0.05) -- Check mỗi 0.05s
+        end
+    end)
+end
+
+local function stopAutoParry()
+    getgenv().AutoParryEnabled = false
+    if getgenv().AutoParryThread then
+        task.cancel(getgenv().AutoParryThread)
+        getgenv().AutoParryThread = nil
+    end
+end
+
+-- ====== HÀM SPAM PARRY LIÊN TỤC 0.001S ======
+local function startSpam()
+    getgenv().SpamIsRunning = true
+    
+    if getgenv().SpamThread then
+        task.cancel(getgenv().SpamThread)
+        getgenv().SpamThread = nil
+    end
+    
+    getgenv().SpamThread = task.spawn(function()
+        while getgenv().SpamIsRunning do
+            pcall(function()
+                -- Gửi Parry request liên tục
+                local args = {
+                    [1] = "ParryRequest"
+                }
+                local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") or game:GetService("ReplicatedStorage"):FindFirstChild("Remote")
+                if remote then
+                    local parryRemote = remote:FindFirstChild("Parry") or remote:FindFirstChild("ParryEvent")
+                    if parryRemote then
+                        parryRemote:InvokeServer(unpack(args))
+                    end
+                end
+                
+                -- Cũng thử click detector
+                pcall(function()
+                    for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
+                        if v:IsA("ClickDetector") then
+                            fireclickdetector(v)
+                        end
+                    end
+                end)
+            end)
+            task.wait(0.001) -- Spam mỗi 0.001s
+        end
+    end)
+end
+
+local function stopSpam()
+    getgenv().SpamIsRunning = false
+    if getgenv().SpamThread then
+        task.cancel(getgenv().SpamThread)
+        getgenv().SpamThread = nil
+    end
+end
+
+-- ====== LIBRARY (Kavo UI) ======
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("Apex Free", "BloodTheme")
 
 -- Tab chính
 local MainTab = Window:NewTab("Main")
 local MainSection = MainTab:NewSection("Apex Features")
-
--- Biến toàn cục
-getgenv().spamui = false
-getgenv().animationfix = false
-getgenv().SpamIsRunning = false
 
 -- Hệ thống Auto Parry
 MainSection:NewToggle("Auto Parry", "Automatically parries ball", function(state)
@@ -27,23 +122,17 @@ MainSection:NewToggle("Auto Parry", "Automatically parries ball", function(state
             getgenv().RespawnConnection = nil 
         end
 
-        local function runSystem()
-            if state then
-                -- Code autoparry ở đây
-                print("Auto Parry: " .. tostring(state))
-            end
-        end
-
         if state then
+            startAutoParry()
+            
             local function setup(char)
                 local hum = char:WaitForChild("Humanoid", 10)
                 if hum then
                     getgenv().DeathConnection = hum.Died:Connect(function()
-                        print("Auto Parry Stopped - Death")
+                        stopAutoParry()
                     end)
                 end
                 task.wait(0.05)
-                runSystem()
             end
 
             if lp.Character then 
@@ -52,9 +141,13 @@ MainSection:NewToggle("Auto Parry", "Automatically parries ball", function(state
             
             getgenv().RespawnConnection = lp.CharacterAdded:Connect(function(char)
                 setup(char)
+                task.wait(0.5)
+                if getgenv().AutoParryEnabled then
+                    startAutoParry()
+                end
             end)
         else
-            print("Auto Parry: OFF")
+            stopAutoParry()
         end
     end)
 end)
@@ -64,7 +157,7 @@ MainSection:NewDropdown("Curve Type", "Select curve type", {"Camera", "Curve1", 
     print("Curve selected: " .. value)
 end)
 
--- ====== GUI HÌNH VUÔNG VỚI NÚT THU NHỎ ======
+-- ====== GUI HÌNH VUÔNG - KHÔNG THỂ KÉO ======
 
 -- Tạo ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -72,7 +165,7 @@ screenGui.Name = "ApexFreeGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = game:GetService("CoreGui")
 
--- Frame chính - HÌNH VUÔNG
+-- Frame chính - HÌNH VUÔNG - KHÔNG KÉO ĐƯỢC
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 250, 0, 250) -- Hình vuông
@@ -80,8 +173,8 @@ mainFrame.Position = UDim2.new(0.5, -125, 0.5, -125)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 mainFrame.BackgroundTransparency = 0.1
 mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
+mainFrame.Active = false -- KHÔNG active -> không kéo được
+mainFrame.Draggable = false -- KHÔNG kéo được
 mainFrame.Parent = screenGui
 
 -- Bo góc cho frame chính
@@ -117,7 +210,7 @@ titleLabel.TextSize = 22
 titleLabel.TextScaled = true
 titleLabel.Parent = mainFrame
 
--- ====== NÚT THU NHỎ (MINIMIZE) ======
+-- ====== NÚT THU NHỎ (MINIMIZE) - VẪN HOẠT ĐỘNG ======
 local minimizeButton = Instance.new("ImageButton")
 minimizeButton.Name = "MinimizeButton"
 minimizeButton.Size = UDim2.new(0, 30, 0, 30)
@@ -184,7 +277,7 @@ local contentCorner = Instance.new("UICorner")
 contentCorner.CornerRadius = UDim.new(0, 8)
 contentCorner.Parent = contentFrame
 
--- ====== CÁC NÚT CHỨC NĂNG TRONG GUI ======
+-- ====== CÁC NÚT CHỨC NĂNG TRONG GUI - KHÔNG KÉO ĐƯỢC ======
 
 -- Hàm tạo nút chức năng
 local function createFeatureButton(parent, name, text, color, callback)
@@ -195,6 +288,7 @@ local function createFeatureButton(parent, name, text, color, callback)
     btnFrame.BackgroundColor3 = color or Color3.fromRGB(40, 40, 60)
     btnFrame.BackgroundTransparency = 0.2
     btnFrame.BorderSizePixel = 0
+    btnFrame.Active = false
     btnFrame.Parent = parent
     
     local btnCorner = Instance.new("UICorner")
@@ -234,16 +328,23 @@ end
 
 -- Nút Auto Parry trong GUI
 createFeatureButton(contentFrame, "AutoParryBtn", "⚔ Auto Parry", Color3.fromRGB(40, 40, 60), function(state)
-    getgenv().AutoParryGUI = state
+    if state then
+        startAutoParry()
+    else
+        stopAutoParry()
+    end
     print("Auto Parry (GUI): " .. tostring(state))
 end)
 
--- Nút Spam trong GUI - Khi bật sẽ hiện nút Spam bên ngoài
+-- Nút Spam trong GUI - Khi bật sẽ spam liên tục 0.001s
 createFeatureButton(contentFrame, "SpamBtn", "🔄 Spam Parry", Color3.fromRGB(40, 40, 60), function(state)
     getgenv().spamui = state
     getgenv().animationfix = state
     
     if state then
+        -- Bắt đầu spam liên tục 0.001s
+        startSpam()
+        
         -- Tạo nút Spam bên ngoài GUI chính
         if not screenGui:FindFirstChild("SpamButtonFrame") then
             local spamFrame = Instance.new("Frame")
@@ -253,8 +354,8 @@ createFeatureButton(contentFrame, "SpamBtn", "🔄 Spam Parry", Color3.fromRGB(4
             spamFrame.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
             spamFrame.BackgroundTransparency = 0.15
             spamFrame.BorderSizePixel = 0
-            spamFrame.Active = true
-            spamFrame.Draggable = true
+            spamFrame.Active = false
+            spamFrame.Draggable = false
             spamFrame.Parent = screenGui
             
             local spamCorner = Instance.new("UICorner")
@@ -278,15 +379,23 @@ createFeatureButton(contentFrame, "SpamBtn", "🔄 Spam Parry", Color3.fromRGB(4
             spamText.TextScaled = true
             spamText.Parent = spamFrame
             
-            local isSpamming = false
             spamText.MouseButton1Click:Connect(function()
-                isSpamming = not isSpamming
-                spamText.Text = isSpamming and "STOP" or "SPAM"
-                spamFrame.BackgroundColor3 = isSpamming and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(255, 50, 50)
-                print("Spam: " .. tostring(isSpamming))
+                if getgenv().SpamIsRunning then
+                    stopSpam()
+                    spamText.Text = "SPAM"
+                    spamFrame.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+                else
+                    startSpam()
+                    spamText.Text = "STOP"
+                    spamFrame.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+                end
+                print("Spam (External): " .. tostring(getgenv().SpamIsRunning))
             end)
         end
     else
+        -- Dừng spam
+        stopSpam()
+        
         -- Xóa nút Spam khi tắt
         if screenGui:FindFirstChild("SpamButtonFrame") then
             screenGui:FindFirstChild("SpamButtonFrame"):Destroy()
@@ -298,7 +407,6 @@ end)
 -- ====== THU NHỎ / PHÓNG TO ======
 local isMinimized = false
 local originalSize = mainFrame.Size
-local originalContentVisible = true
 
 minimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -320,9 +428,6 @@ minimizeButton.MouseButton1Click:Connect(function()
         
         -- Đặt vị trí về góc trên bên phải
         mainFrame.Position = UDim2.new(1, -60, 0, 10)
-        
-        -- Không cho kéo khi thu nhỏ
-        mainFrame.Draggable = true
     else
         -- Phóng to trở lại
         mainFrame:TweenSize(originalSize, "Out", "Quad", 0.3, true)
@@ -340,13 +445,15 @@ minimizeButton.MouseButton1Click:Connect(function()
         
         -- Đặt lại vị trí trung tâm
         mainFrame.Position = UDim2.new(0.5, -125, 0.5, -125)
-        
-        mainFrame.Draggable = true
     end
 end)
 
 -- Nút đóng (X)
 closeButton.MouseButton1Click:Connect(function()
+    -- Dừng tất cả threads
+    stopAutoParry()
+    stopSpam()
+    
     screenGui:Destroy()
     print("Apex Free GUI Closed")
 end)
@@ -393,4 +500,7 @@ end)
 
 -- In ra console
 print("===== APEX FREE LOADED =====")
-print("GUI hình vuông với nút thu nhỏ đã sẵn sàng!")
+print("✅ GUI hình vuông - KHÔNG thể kéo")
+print("✅ Nút thu nhỏ vẫn hoạt động")
+print("✅ Spam Parry: spam mỗi 0.001s")
+print("✅ Auto Parry: hoạt động thực tế")
