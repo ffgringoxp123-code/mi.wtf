@@ -1,0 +1,396 @@
+-- Apex Free - Blade Ball Script
+-- Tác giả: HackerAI
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Apex Free", "BloodTheme")
+
+-- Tab chính
+local MainTab = Window:NewTab("Main")
+local MainSection = MainTab:NewSection("Apex Features")
+
+-- Biến toàn cục
+getgenv().spamui = false
+getgenv().animationfix = false
+getgenv().SpamIsRunning = false
+
+-- Hệ thống Auto Parry
+MainSection:NewToggle("Auto Parry", "Automatically parries ball", function(state)
+    pcall(function()
+        local lp = game:GetService("Players").LocalPlayer
+
+        if getgenv().DeathConnection then 
+            getgenv().DeathConnection:Disconnect() 
+            getgenv().DeathConnection = nil 
+        end
+        if getgenv().RespawnConnection then 
+            getgenv().RespawnConnection:Disconnect() 
+            getgenv().RespawnConnection = nil 
+        end
+
+        local function runSystem()
+            if state then
+                -- Code autoparry ở đây
+                print("Auto Parry: " .. tostring(state))
+            end
+        end
+
+        if state then
+            local function setup(char)
+                local hum = char:WaitForChild("Humanoid", 10)
+                if hum then
+                    getgenv().DeathConnection = hum.Died:Connect(function()
+                        print("Auto Parry Stopped - Death")
+                    end)
+                end
+                task.wait(0.05)
+                runSystem()
+            end
+
+            if lp.Character then 
+                setup(lp.Character)
+            end
+            
+            getgenv().RespawnConnection = lp.CharacterAdded:Connect(function(char)
+                setup(char)
+            end)
+        else
+            print("Auto Parry: OFF")
+        end
+    end)
+end)
+
+-- Dropdown cho Curve Type
+MainSection:NewDropdown("Curve Type", "Select curve type", {"Camera", "Curve1", "Curve2", "Curve3"}, function(value)
+    print("Curve selected: " .. value)
+end)
+
+-- ====== GUI HÌNH VUÔNG VỚI NÚT THU NHỎ ======
+
+-- Tạo ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ApexFreeGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game:GetService("CoreGui")
+
+-- Frame chính - HÌNH VUÔNG
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 250, 0, 250) -- Hình vuông
+mainFrame.Position = UDim2.new(0.5, -125, 0.5, -125)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- Bo góc cho frame chính
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+-- Viền glow
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 2
+mainStroke.Color = Color3.fromRGB(255, 50, 50)
+mainStroke.Transparency = 0.3
+mainStroke.Parent = mainFrame
+
+-- Gradient nền
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 40)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 25))
+})
+gradient.Parent = mainFrame
+
+-- ====== TIÊU ĐỀ ======
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Text = "APEX FREE"
+titleLabel.Size = UDim2.new(1, 0, 0, 40)
+titleLabel.Position = UDim2.new(0, 0, 0, 10)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+titleLabel.TextSize = 22
+titleLabel.TextScaled = true
+titleLabel.Parent = mainFrame
+
+-- ====== NÚT THU NHỎ (MINIMIZE) ======
+local minimizeButton = Instance.new("ImageButton")
+minimizeButton.Name = "MinimizeButton"
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -40, 0, 8)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+minimizeButton.BackgroundTransparency = 0.3
+minimizeButton.BorderSizePixel = 0
+minimizeButton.Parent = mainFrame
+
+-- Bo góc nút thu nhỏ
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 6)
+minCorner.Parent = minimizeButton
+
+-- Icon dấu "-" cho nút thu nhỏ
+local minIcon = Instance.new("TextLabel")
+minIcon.Name = "MinIcon"
+minIcon.Text = "−"
+minIcon.Size = UDim2.new(1, 0, 1, 0)
+minIcon.BackgroundTransparency = 1
+minIcon.Font = Enum.Font.GothamBold
+minIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+minIcon.TextSize = 20
+minIcon.TextScaled = true
+minIcon.Parent = minimizeButton
+
+-- Nút đóng (X)
+local closeButton = Instance.new("ImageButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -75, 0, 8)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+closeButton.BackgroundTransparency = 0.3
+closeButton.BorderSizePixel = 0
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeButton
+
+local closeIcon = Instance.new("TextLabel")
+closeIcon.Name = "CloseIcon"
+closeIcon.Text = "×"
+closeIcon.Size = UDim2.new(1, 0, 1, 0)
+closeIcon.BackgroundTransparency = 1
+closeIcon.Font = Enum.Font.GothamBold
+closeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeIcon.TextSize = 20
+closeIcon.TextScaled = true
+closeIcon.Parent = closeButton
+
+-- ====== CONTENT FRAME (bên trong GUI chính) ======
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, -20, 1, -70)
+contentFrame.Position = UDim2.new(0, 10, 0, 55)
+contentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+contentFrame.BackgroundTransparency = 0.3
+contentFrame.BorderSizePixel = 0
+contentFrame.ClipsDescendants = true
+contentFrame.Parent = mainFrame
+
+local contentCorner = Instance.new("UICorner")
+contentCorner.CornerRadius = UDim.new(0, 8)
+contentCorner.Parent = contentFrame
+
+-- ====== CÁC NÚT CHỨC NĂNG TRONG GUI ======
+
+-- Hàm tạo nút chức năng
+local function createFeatureButton(parent, name, text, color, callback)
+    local btnFrame = Instance.new("Frame")
+    btnFrame.Name = name .. "Frame"
+    btnFrame.Size = UDim2.new(1, -10, 0, 35)
+    btnFrame.Position = UDim2.new(0, 5, 0, 5 + (#parent:GetChildren() - 1) * 40)
+    btnFrame.BackgroundColor3 = color or Color3.fromRGB(40, 40, 60)
+    btnFrame.BackgroundTransparency = 0.2
+    btnFrame.BorderSizePixel = 0
+    btnFrame.Parent = parent
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = btnFrame
+    
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Text = text
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextColor3 = Color3.fromRGB(220, 220, 220)
+    btn.TextSize = 14
+    btn.TextScaled = true
+    btn.Parent = btnFrame
+    
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Thickness = 1
+    btnStroke.Color = Color3.fromRGB(255, 255, 255)
+    btnStroke.Transparency = 0.8
+    btnStroke.Parent = btnFrame
+    
+    local btnActive = false
+    
+    btn.MouseButton1Click:Connect(function()
+        btnActive = not btnActive
+        btnFrame.BackgroundColor3 = btnActive and Color3.fromRGB(255, 50, 50) or color or Color3.fromRGB(40, 40, 60)
+        btnFrame.BackgroundTransparency = btnActive and 0.1 or 0.2
+        if callback then
+            callback(btnActive)
+        end
+    end)
+    
+    return btnFrame
+end
+
+-- Nút Auto Parry trong GUI
+createFeatureButton(contentFrame, "AutoParryBtn", "⚔ Auto Parry", Color3.fromRGB(40, 40, 60), function(state)
+    getgenv().AutoParryGUI = state
+    print("Auto Parry (GUI): " .. tostring(state))
+end)
+
+-- Nút Spam trong GUI - Khi bật sẽ hiện nút Spam bên ngoài
+createFeatureButton(contentFrame, "SpamBtn", "🔄 Spam Parry", Color3.fromRGB(40, 40, 60), function(state)
+    getgenv().spamui = state
+    getgenv().animationfix = state
+    
+    if state then
+        -- Tạo nút Spam bên ngoài GUI chính
+        if not screenGui:FindFirstChild("SpamButtonFrame") then
+            local spamFrame = Instance.new("Frame")
+            spamFrame.Name = "SpamButtonFrame"
+            spamFrame.Size = UDim2.new(0, 120, 0, 50)
+            spamFrame.Position = UDim2.new(0.5, -60, 0.85, 0)
+            spamFrame.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+            spamFrame.BackgroundTransparency = 0.15
+            spamFrame.BorderSizePixel = 0
+            spamFrame.Active = true
+            spamFrame.Draggable = true
+            spamFrame.Parent = screenGui
+            
+            local spamCorner = Instance.new("UICorner")
+            spamCorner.CornerRadius = UDim.new(0, 25)
+            spamCorner.Parent = spamFrame
+            
+            local spamStroke = Instance.new("UIStroke")
+            spamStroke.Thickness = 2
+            spamStroke.Color = Color3.fromRGB(255, 100, 100)
+            spamStroke.Transparency = 0.3
+            spamStroke.Parent = spamFrame
+            
+            local spamText = Instance.new("TextButton")
+            spamText.Name = "SpamTextButton"
+            spamText.Text = "SPAM"
+            spamText.Size = UDim2.new(1, 0, 1, 0)
+            spamText.BackgroundTransparency = 1
+            spamText.Font = Enum.Font.GothamBlack
+            spamText.TextColor3 = Color3.fromRGB(255, 255, 255)
+            spamText.TextSize = 20
+            spamText.TextScaled = true
+            spamText.Parent = spamFrame
+            
+            local isSpamming = false
+            spamText.MouseButton1Click:Connect(function()
+                isSpamming = not isSpamming
+                spamText.Text = isSpamming and "STOP" or "SPAM"
+                spamFrame.BackgroundColor3 = isSpamming and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(255, 50, 50)
+                print("Spam: " .. tostring(isSpamming))
+            end)
+        end
+    else
+        -- Xóa nút Spam khi tắt
+        if screenGui:FindFirstChild("SpamButtonFrame") then
+            screenGui:FindFirstChild("SpamButtonFrame"):Destroy()
+        end
+        print("Spam GUI OFF")
+    end
+end)
+
+-- ====== THU NHỎ / PHÓNG TO ======
+local isMinimized = false
+local originalSize = mainFrame.Size
+local originalContentVisible = true
+
+minimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    
+    if isMinimized then
+        -- Thu nhỏ thành hình vuông mini
+        mainFrame:TweenSize(UDim2.new(0, 50, 0, 50), "Out", "Quad", 0.3, true)
+        
+        -- Ẩn nội dung
+        contentFrame.Visible = false
+        titleLabel.Visible = false
+        closeButton.Visible = false
+        
+        -- Đổi icon thành dấu +
+        minIcon.Text = "+"
+        
+        -- Đổi màu nút minimize
+        minimizeButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        
+        -- Đặt vị trí về góc trên bên phải
+        mainFrame.Position = UDim2.new(1, -60, 0, 10)
+        
+        -- Không cho kéo khi thu nhỏ
+        mainFrame.Draggable = true
+    else
+        -- Phóng to trở lại
+        mainFrame:TweenSize(originalSize, "Out", "Quad", 0.3, true)
+        
+        -- Hiện nội dung
+        contentFrame.Visible = true
+        titleLabel.Visible = true
+        closeButton.Visible = true
+        
+        -- Đổi icon lại thành dấu -
+        minIcon.Text = "−"
+        
+        -- Đổi màu nút minimize lại
+        minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        
+        -- Đặt lại vị trí trung tâm
+        mainFrame.Position = UDim2.new(0.5, -125, 0.5, -125)
+        
+        mainFrame.Draggable = true
+    end
+end)
+
+-- Nút đóng (X)
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    print("Apex Free GUI Closed")
+end)
+
+-- ====== HIỆU ỨNG HOVER CHO NÚT ======
+local function addHoverEffect(button, normalColor, hoverColor)
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = hoverColor or Color3.fromRGB(255, 80, 80)
+        button.BackgroundTransparency = 0.1
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = normalColor or Color3.fromRGB(255, 50, 50)
+        button.BackgroundTransparency = 0.3
+    end)
+end
+
+addHoverEffect(minimizeButton, Color3.fromRGB(255, 50, 50), Color3.fromRGB(255, 100, 100))
+addHoverEffect(closeButton, Color3.fromRGB(200, 30, 30), Color3.fromRGB(255, 60, 60))
+
+-- ====== THÔNG BÁO ======
+local notifyLabel = Instance.new("TextLabel")
+notifyLabel.Name = "Notify"
+notifyLabel.Text = "Apex Free Loaded ✅"
+notifyLabel.Size = UDim2.new(1, -20, 0, 25)
+notifyLabel.Position = UDim2.new(0, 10, 1, -35)
+notifyLabel.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+notifyLabel.BackgroundTransparency = 0.3
+notifyLabel.Font = Enum.Font.GothamSemibold
+notifyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+notifyLabel.TextSize = 12
+notifyLabel.TextScaled = true
+notifyLabel.Parent = mainFrame
+
+local notifyCorner = Instance.new("UICorner")
+notifyCorner.CornerRadius = UDim.new(0, 5)
+notifyCorner.Parent = notifyLabel
+
+-- Ẩn thông báo sau 3 giây
+task.delay(3, function()
+    if notifyLabel and notifyLabel.Parent then
+        notifyLabel:Destroy()
+    end
+end)
+
+-- In ra console
+print("===== APEX FREE LOADED =====")
+print("GUI hình vuông với nút thu nhỏ đã sẵn sàng!")
